@@ -1,4 +1,7 @@
 import { Flex, Text, Image, Button } from "@chakra-ui/react";
+import { useState } from "react";
+import MintNFTModal from "src/modals/MintNFTModal";
+import PaymentModal from "src/modals/PaymentModal";
 
 function Home() {
   const buildComponent = () => {
@@ -42,6 +45,7 @@ function Home() {
             h="54px"
             fontWeight={"700"}
             fontSize="24px"
+            onClick={() => setIsNFTModalOpen(true)}
           >
             Raise fund
           </Button>
@@ -50,6 +54,8 @@ function Home() {
         <Flex w="40%" minH="100%" direction={"column"} overflowY="auto" px={4}>
           {Array.from(Array(10)).map(profileCard)}
         </Flex>
+        <PaymentModal isOpen={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)} />
+        <MintNFTModal isOpen={isNFTModalOpen} onClose={() => setIsNFTModalOpen(false)} />
       </Flex>
     );
   };
@@ -85,7 +91,7 @@ function Home() {
           </Text>
           <Text fontSize="18px">Description goes here</Text>
           <Flex mt="auto" w="100%">
-            <Button ml="auto" bg="accent.azure" _hover={{ bg: "accent.jeans" }}>
+            <Button ml="auto" bg="accent.azure" _hover={{ bg: "accent.jeans" }} onClick={() => setIsPaymentModalOpen(true)}>
               <Text color="white">Flow fund</Text>
             </Button>
           </Flex>
@@ -93,6 +99,9 @@ function Home() {
       </Flex>
     );
   };
+
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState<boolean>(false);
+  const [isNFTModalOpen, setIsNFTModalOpen] = useState<boolean>(false);
 
   return buildComponent();
 }
