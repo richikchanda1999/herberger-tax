@@ -1,0 +1,15 @@
+query getFlowRate($sender: String!, $receiver: String!) {
+  streams(
+    orderBy: createdAtTimestamp
+    orderDirection: desc
+    where: {
+      receiver: $receiver
+      sender: $sender
+    }
+  ) {
+    id
+    currentFlowRate
+    updatedAtTimestamp
+    streamedUntilUpdatedAt
+  }
+}

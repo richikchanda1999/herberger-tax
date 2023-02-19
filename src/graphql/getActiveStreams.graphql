@@ -1,0 +1,14 @@
+query getActiveStreams($sender: String!, $receiver: String!) {
+  streams(
+    orderBy: createdAtTimestamp
+    orderDirection: desc
+    first: 1
+    where: {
+      receiver: $receiver
+      sender: $sender
+      currentFlowRate_gt: 0
+    }
+  ) {
+    id
+  }
+}

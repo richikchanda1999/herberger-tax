@@ -11,6 +11,9 @@ import {
   Textarea,
 } from "@chakra-ui/react";
 import { useState } from "react";
+import { useArcanaAuth } from "src/utils/useArcanaAuth";
+import { ethers } from "ethers"
+import ABI from "src/abi/TradeableCashflow1.json"
 
 interface Props {
   isOpen: boolean;
@@ -33,11 +36,17 @@ function MintNFTModal({ isOpen, onClose }: Props) {
                 Enter the details below to mint an NFT and start a fundraising
                 campaign
               </Text>
-              <Input mt={2} placeholder="Enter the title of your campaign" value={title} onChange={(e) => setTitle(e.target.value)} />
+              <Input
+                mt={2}
+                placeholder="Enter the title of your campaign"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
               <Textarea
                 mt={2}
                 placeholder="Enter the description of your campaign"
-                value={description} onChange={(e) => setDescription(e.target.value)}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
               />
               <Button
                 w="100%"
@@ -45,6 +54,7 @@ function MintNFTModal({ isOpen, onClose }: Props) {
                 _hover={{ bg: "accent.jeans" }}
                 color="white"
                 mt={6}
+                onClick={onClick}
               >
                 Mint NFT
               </Button>
@@ -57,6 +67,28 @@ function MintNFTModal({ isOpen, onClose }: Props) {
 
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
+
+  const { provider, user } = useArcanaAuth();
+
+  const onClick = async () => {
+    if (!user || title === '' || description === '') return;
+
+    const iface = new ethers.utils.Interface(ABI)
+    const data = iface.encodeFunctionData('mintNFT', [title, description])
+
+    const hash = await provider.request({
+      method: "eth_sendTransaction",
+      params: [
+        {
+          from: user.address,
+          to: "0x0a3c7EcD69604e924027f642dB14403e8cbb2e2e",
+          value: "0",
+          data,
+        },
+      ],
+    });
+    console.log({ hash });
+  };
 
   return buildComponent();
 }

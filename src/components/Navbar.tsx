@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Text } from "@chakra-ui/react";
+import { Box, Button, Flex, Text, Image } from "@chakra-ui/react";
 import { useEffect } from "react";
 import { formatAddress } from "src/utils/formatters";
 import { useArcanaAuth } from "src/utils/useArcanaAuth";
@@ -21,20 +21,25 @@ function Navbar() {
         {isLoggedIn && (
           <Flex
             my="auto"
-            direction={"column"}
+            direction={"row"}
             bg="gray.100"
             py={2}
             px={4}
             borderRadius="4px"
           >
-            <Text>{user?.name}</Text>
-            <Flex>
-              <Text fontSize="14px" color="gray">
-                {formatAddress(user?.address)}
-              </Text>
-              <Text fontSize="14px" color="gray" ml={1}>
-                - {provider.chainId}
-              </Text>
+            <Flex w='100%' align={'center'} gap={4}>
+              <Image src={user?.picture} boxSize={'3rem'} borderRadius='3xl' />
+              <Flex direction={"column"}>
+                <Text>{user?.name}</Text>
+                <Flex>
+                  <Text fontSize="14px" color="gray">
+                    {formatAddress(user?.address)}
+                  </Text>
+                  <Text fontSize="14px" color="gray" ml={1}>
+                    - {provider.chainId}
+                  </Text>
+                </Flex>
+              </Flex>
             </Flex>
           </Flex>
         )}

@@ -1,18 +1,20 @@
-import { Flex, Text, Button, Box } from "@chakra-ui/react";
+import { Flex, Text, Button, Image } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import Navbar from "src/components/Navbar";
 import MintNFTModal from "src/modals/MintNFTModal";
 import PaymentModal from "src/modals/PaymentModal";
-import { useArcanaAuth } from "src/utils/useArcanaAuth";
+import { Network, Alchemy } from "alchemy-sdk";
+import { NFT } from "src/utils/types";
+import NFTCard from "src/components/NFTCard";
 
 function Home() {
   const buildComponent = () => {
     return (
       <Flex w="100vw" h="100vh" direction={"column"}>
         <Navbar />
-        <Flex w="100%">
+        <Flex w="100%" h='100%'>
           <Flex
-            w="60%"
+            w="55%"
             minH="100%"
             align={"center"}
             justify="center"
@@ -56,18 +58,23 @@ function Home() {
           </Flex>
           {/* <Divider my='auto' h='60%' w='32px' color='black' orientation="vertical" /> */}
           <Flex
-            w="40%"
+            w="45%"
+            minH="100%"
             maxH="calc(100vh - 96px)"
             direction={"column"}
             overflowY="auto"
             px={4}
           >
-            {Array.from(Array(10)).map(profileCard)}
+            {nfts.map((nft, index) => {
+              return <NFTCard nft={nft} index={index} key={index} setSelectedNFT={setSelectedNFT} />
+            })}
+            {nfts.length === 0 && <Flex w='100%' h='100%' justify={'center'} align='center'><Text textAlign={'center'}>There are no fundraisers to fund, yet!</Text></Flex>}
           </Flex>
         </Flex>
         <PaymentModal
-          isOpen={isPaymentModalOpen}
-          onClose={() => setIsPaymentModalOpen(false)}
+          isOpen={selectedNFT !== undefined}
+          onClose={() => setSelectedNFT(undefined)}
+          nft={selectedNFT!}
         />
         <MintNFTModal
           isOpen={isNFTModalOpen}
@@ -77,53 +84,45 @@ function Home() {
     );
   };
 
-  const profileCard = (element: number, index: number) => {
-    return (
-      <Flex
-        key={index}
-        borderRadius={"16px"}
-        boxShadow="4px 8px 2px 2px rgba(31, 31, 51)"
-        border="4px solid rgba(31, 31, 51)"
-        my={4}
-        p={4}
-        direction="row"
-        gap={6}
-        minH={"25%"}
-      >
-        <Flex
-          h="100%"
-          w="25%"
-          border={"1px solid rgba(31, 31, 51)"}
-          borderRadius="4px"
-          align="center"
-          justify={"center"}
-          direction="column"
-        >
-          <Text>NFT</Text>
-          <Text>Image here</Text>
-        </Flex>
-        <Flex direction="column" gap={2} w="75%">
-          <Text fontSize="24px" fontWeight="bold">
-            Title goes here
-          </Text>
-          <Text fontSize="18px">Description goes here</Text>
-          <Flex mt="auto" w="100%">
-            <Button
-              ml="auto"
-              bg="accent.azure"
-              _hover={{ bg: "accent.jeans" }}
-              onClick={() => setIsPaymentModalOpen(true)}
-            >
-              <Text color="white">Flow fund</Text>
-            </Button>
-          </Flex>
-        </Flex>
-      </Flex>
-    );
-  };
-
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState<boolean>(false);
   const [isNFTModalOpen, setIsNFTModalOpen] = useState<boolean>(false);
+
+  const [nfts, setNfts] = useState<NFT[]>([]);
+  const [selectedNFT, setSelectedNFT] = useState<NFT>();
+
+  const settings = {
+    apiKey: process.env.ALCHEMY_API_KEY,
+    network: Network.MATIC_MUMBAI,
+  };
+  
+  const alchemy = new Alchemy(settings);
+
+  const fetchNFTs = async () => {
+    const address = '0x0a3c7EcD69604e924027f642dB14403e8cbb2e2e'
+    const nfts = await alchemy.nft.getNftsForContract(address);
+    
+    const _nfts: NFT[] = []
+    for(const nft of nfts.nfts) {
+      const raw = nft.tokenUri?.raw
+      if(raw) {
+        const decode1 = Buffer.from(raw.split(',')[1], 'base64').toString()
+        const json = JSON.parse(decode1)
+
+        _nfts.push({
+          id: nft.tokenId,
+          name: json.name,
+          description: json.description,
+          image: json.image,
+          owner: nft.contract.address,
+        })
+      }
+    }
+
+    setNfts(_nfts)
+  }
+
+  useEffect(() => {
+    fetchNFTs()
+  }, [])
 
   return buildComponent();
 }
